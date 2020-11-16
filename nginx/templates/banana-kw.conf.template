@@ -1,0 +1,55 @@
+server {
+    listen 80;
+    server_name banana-kw.local;
+    root /data/www/banana-kw.local;
+    # пример использования вложенной директории как корня
+    #root /data/www/banana-kw.local/htdocs;
+
+    access_log /etc/nginx/logs/banana-kw.local.access.log;
+    error_log /etc/nginx/logs/banana-kw.local.error.log notice;
+
+    # запрещаем работать со скрытыми файлами и папками
+    location ~ /\. {
+        deny all;
+        access_log off;
+        log_not_found off;
+    }
+    location ~* .*/\..* {
+        return 403;
+    }
+
+    # всю статику, которая реально существует,
+    # отдаем пользователю напрямую без прокси
+    #location ~ \.(jpe?g|png|svg|ico)$ {
+    #    try_files $uri @php;
+    #    expires 28d;
+    #}
+    location ~ \.(html|js|css)$ {
+        try_files $uri =404;
+        #try_files $uri @ver;
+        expires 1d;
+    }
+    #location ~ \.(txt)$ {
+    #    try_files $uri @php;
+    #    expires 14d;
+    #}
+
+    location ~ ^/api/ {
+        proxy_set_header Host $host;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_pass http://python_api:8000$request_uri;
+
+        #include /etc/nginx/uwsgi_params;
+        #uwsgi_pass python_api;
+        #uwsgi_param Host $host;
+        #uwsgi_param X-Real-IP $remote_addr;
+        #uwsgi_param X-Forwarded-For $proxy_add_x_forwarded_for;
+        #uwsgi_param X-Forwarded-Proto $http_x_forwarded_proto;
+    }
+
+    # все остальные запросы отдаем в прокси (apache/php-fpm)
+    location / {
+        try_files $uri =404;
+    }
+}

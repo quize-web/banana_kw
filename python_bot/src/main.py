@@ -120,9 +120,9 @@ def echo(update, context):
     # repr_definition_list = repr(definition_list)
     repr_definition_list = json.dumps(definition_list)
     # repr_definition_list = json.dumps(definition_list, ensure_ascii=False).encode('utf8')
-    f = open('/usr/src/app/src/log.txt', 'w')
-    f.write('definition_list = ' + repr_definition_list + '\n')
-    f.close()
+    # f = open('/usr/src/app/src/log.txt', 'w')
+    # f.write('definition_list = ' + repr_definition_list + '\n')
+    # f.close()
 
     link_slug = insert(links, repr_definition_list)
 
