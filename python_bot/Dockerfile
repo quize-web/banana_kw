@@ -9,6 +9,6 @@ WORKDIR /usr/src/app
 RUN pip install python-telegram-bot --upgrade
 RUN pip install rutermextract
 
-COPY . .
+#COPY . .
 
-CMD [ "python", "./main.py" ]
+CMD [ "python", "./src/main.py" ]

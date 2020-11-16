@@ -9,6 +9,8 @@ services:
       - "8001:8000"
     environment:
       - TOKEN=${TOKEN}
+    volumes:
+      - ./python_bot/src:/usr/src/app/src
     networks:
       backend:
         aliases:
