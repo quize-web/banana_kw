@@ -1,12 +1,35 @@
 import os
-token = os.getenv('TOKEN')
+import calendar
+import time
+import random
+import string
+import logging
+import sys
+import urllib.parse
 
 from rutermextract import TermExtractor
 from typing import List
+from pymongo import MongoClient
+from telegram.ext import Updater
+from telegram.ext import MessageHandler, Filters
+from telegram.ext import CommandHandler
 
-### отладка
+token = os.getenv('TOKEN')
+# mongo_ip = os.getenv('mongo')
+mongo_root_username = urllib.parse.quote_plus(os.getenv('MONGO_ROOT_USERNAME'))
+mongo_root_password = urllib.parse.quote_plus(os.getenv('MONGO_ROOT_PASSWORD'))
+mongo_database = os.getenv('MONGO_DATABASE')
+
+### --- отладка
+
+# prints
 
 # print("TOKEN: %s" % token)
+# print("MONGO IP: %s" % mongo_ip)
+# print('mongodb://%s:%s@0.0.0.0:27017/' % (mongo_root_username, mongo_root_password))
+# print('mongodb://%s:%s@mongo:27017/' % (mongo_root_username, mongo_root_password))
+
+# term extractor
 
 # term_extractor = TermExtractor()
 # test_text = """Турагенты не владеют средствами обслуживания и выступают посредниками между предприятием туристского обслуживания и покупателем туристской путевки, продвигая и реализуя туристский продукт.
@@ -27,25 +50,34 @@ from typing import List
 # f = open('/usr/src/app/src/log.txt', 'w')
 # f.write('definition_list = ' + repr(definition_list) + '\n')
 # f.close()
+
+# mongo
+
+# # client = MongoClient()
+# # client = MongoClient('localhost', 27017)
+# client = MongoClient('mongodb://%s:%s@mongo:27017/' % (mongo_root_username, mongo_root_password))
 #
-# import sys
+# db = client[mongo_database]
+# links = db.container # collection
+#
+# ts = calendar.timegm(time.gmtime())
+# letters = string.ascii_lowercase
+# randomString = ''.join(random.choice(letters) for i in range(10))
+# linkSlug = '%s-%s' % (ts, randomString)
+#
+# link = {'link': linkSlug, 'data': "[['туристский продукт', 4]]"}
+# link_id = links.insert_one(link).inserted_id
+# print(link_id)
+
+# exit
+
 # sys.exit()
 
 ###
 
-from telegram.ext import Updater
-updater = Updater(token=token, use_context=True)
-dispatcher = updater.dispatcher
+### --- bot logic
 
-# логирование
-
-import logging
-logging.basicConfig(
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    level=logging.INFO
-)
-
-# обработка команд
+# functions
 
 def start(update, context):
     context.bot.send_message(
@@ -53,17 +85,17 @@ def start(update, context):
         text="Привет. Введи текст, и я извлеку из него ключевые слова!"
     )
 
-from telegram.ext import CommandHandler
-start_handler = CommandHandler('start', start)
-dispatcher.add_handler(start_handler)
+def insert(collection, data):
+    ts = calendar.timegm(time.gmtime())
+    letters = string.ascii_lowercase
+    random_string = ''.join(random.choice(letters) for i in range(10))
+    link_slug = '%s-%s' % (ts, random_string)
 
-# обработка сообщений
+    link = {'link': link_slug, 'data': data}
+    link_id = collection.insert_one(link).inserted_id
 
-# def echo(update, context):
-#     context.bot.send_message(
-#         chat_id=update.effective_chat.id,
-#         text=update.message.text
-#     )
+    # return link_id
+    return link_slug
 
 def echo(update, context):
     term_extractor = TermExtractor()
@@ -82,15 +114,41 @@ def echo(update, context):
     f.write('definition_list = ' + repr(definition_list) + '\n')
     f.close()
 
+    # link_slug = insert()
+
     context.bot.send_message(
         chat_id=update.effective_chat.id,
         # text=definition_list
-        # text='Успешно!'
+        # text='Извлечение ключевых слов успешно завершено! Посмотреть результат Вы можете по данной ссылке: [ссылка]'
+        # text=repr(definition_list)
         text=repr(definition_list)
     )
 
+# mongo connect
 
-from telegram.ext import MessageHandler, Filters
+client = MongoClient('mongodb://%s:%s@mongo:27017/' % (mongo_root_username, mongo_root_password))
+db = client[mongo_database]
+links = db.container # collection
+
+# bot connect
+
+updater = Updater(token=token, use_context=True)
+dispatcher = updater.dispatcher
+
+# логирование
+
+logging.basicConfig(
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    level=logging.INFO
+)
+
+# обработка команд
+
+start_handler = CommandHandler('start', start)
+dispatcher.add_handler(start_handler)
+
+# обработка сообщений
+
 echo_handler = MessageHandler(Filters.text & (~Filters.command), echo)
 dispatcher.add_handler(echo_handler)
 

@@ -8,6 +8,7 @@ WORKDIR /usr/src/app
 
 RUN pip install python-telegram-bot --upgrade
 RUN pip install rutermextract
+RUN pip install pymongo
 
 #COPY . .
 
