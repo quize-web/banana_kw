@@ -6,6 +6,7 @@ import string
 import logging
 import sys
 import urllib.parse
+import json
 
 from rutermextract import TermExtractor
 from typing import List
@@ -77,6 +78,12 @@ mongo_database = os.getenv('MONGO_DATABASE')
 
 ### --- bot logic
 
+# mongo connect
+
+client = MongoClient('mongodb://%s:%s@mongo:27017/' % (mongo_root_username, mongo_root_password))
+db = client[mongo_database]
+links = db.container # collection
+
 # functions
 
 def start(update, context):
@@ -110,25 +117,22 @@ def echo(update, context):
         definition_list.append([term.normalized, term.count])
 
     # print(definition_list)
+    # repr_definition_list = repr(definition_list)
+    repr_definition_list = json.dumps(definition_list)
+    # repr_definition_list = json.dumps(definition_list, ensure_ascii=False).encode('utf8')
     f = open('/usr/src/app/src/log.txt', 'w')
-    f.write('definition_list = ' + repr(definition_list) + '\n')
+    f.write('definition_list = ' + repr_definition_list + '\n')
     f.close()
 
-    # link_slug = insert()
+    link_slug = insert(links, repr_definition_list)
 
     context.bot.send_message(
         chat_id=update.effective_chat.id,
         # text=definition_list
         # text='Извлечение ключевых слов успешно завершено! Посмотреть результат Вы можете по данной ссылке: [ссылка]'
-        # text=repr(definition_list)
-        text=repr(definition_list)
+        # text=repr_definition_list
+        text=link_slug
     )
-
-# mongo connect
-
-client = MongoClient('mongodb://%s:%s@mongo:27017/' % (mongo_root_username, mongo_root_password))
-db = client[mongo_database]
-links = db.container # collection
 
 # bot connect
 
