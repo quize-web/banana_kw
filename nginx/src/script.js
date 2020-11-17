@@ -28,24 +28,29 @@ function draw(data) {
 
     let color = function () {
         const scale = d3.scaleOrdinal(d3.schemeCategory10);
-        return d => scale(d.group);
+        return function (item) {
+            return scale(item.group)
+        };
     }
 
-    let width = 680;
-    let height = 680;
+    // let width = 600;
+    // let height = 200;
+
+    let width = window.innerWidth,
+        height = window.innerHeight;
 
     let chart = function () {
         const links = data.links.map(d => Object.create(d));
         const nodes = data.nodes.map(d => Object.create(d));
 
         const simulation = d3.forceSimulation(nodes)
-            .force("link", d3.forceLink(links).id(d => d.id))
+            .force("link", d3.forceLink(links).distance(150).id(d => d.id))
             .force("charge", d3.forceManyBody())
             .force("x", d3.forceX())
             .force("y", d3.forceY());
 
         const svg = d3.create("svg")
-            .attr("viewBox", [-width / 2, -height / 2, width, height]);
+            .attr("viewBox", [-width / 2, -height / 2, width, height - 5]);
 
         const link = svg.append("g")
             .attr("stroke", "#999")
@@ -62,11 +67,55 @@ function draw(data) {
             .data(nodes)
             .join("circle")
             .attr("r", 5)
-            .attr("fill", color)
-            .call(drag(simulation));
+            .attr("fill", color());
+
+        // const labels = node
+        //     .append('text')
+        //     .text(d => d.id)
+        //     .style('fill', '#000')
+        //     .style('font-size', '12px')
+        //     // .attr('x', 8)
+        //     // .attr('y', '0.31em')
+        //     .attr('x', 6)
+        //     .attr('y', 3);
+        // // .clone(true).lower()
+        // // .attr("fill", "none")
+        // // .attr("stroke", "white")
+        // // .attr("stroke-width", 3);
+
+        const labels = svg.append("g")
+            .selectAll("text")
+            .data(nodes)
+            .join("text")
+            .style('fill', '#000')
+            .style('font-size', '14px')
+            // .style('font-weight', 'bold')
+            .text(d => d.id);
+
+        node.call(drag(simulation));
 
         node.append("title")
             .text(d => d.id);
+
+        // const node = svg.append("g")
+        //     .selectAll(".node")
+        //     .data(nodes)
+        //     .join("g")
+        //     .attr('class', 'node')
+        //     .call(drag(simulation));
+        //
+        // node.append('circle')
+        //     .attr("r", 5)
+        //     .attr("fill", color());
+        //
+        // node.append("text")
+        //     .text(function(d) {
+        //         return d.id;
+        //     })
+        //     .style('fill', '#000')
+        //     .style('font-size', '12px')
+        //     .attr('x', 6)
+        //     .attr('y', 3);
 
         simulation.on("tick", () => {
             link
@@ -78,6 +127,12 @@ function draw(data) {
             node
                 .attr("cx", d => d.x)
                 .attr("cy", d => d.y);
+
+            labels
+                .attr("x", d => d.x + 10)
+                .attr("y", d => d.y - 5)
+                // .attr("cx", d => d.x)
+                // .attr("cy", d => d.y);
         });
 
         // invalidation.then(() => simulation.stop());
@@ -88,8 +143,8 @@ function draw(data) {
     let svgNode = chart();
     // console.log(svgNode);
 
-    let body = document.getElementsByTagName('body')[0];
-    body.appendChild(svgNode);
+    let network = document.getElementById('network');
+    network.appendChild(svgNode);
 
 }
 
@@ -108,6 +163,18 @@ function makeData(items) {
             {
                 id: "test_id__02",
                 group: "test_group__01",
+                radius: 10,
+                citing_patents_count: 2,
+            },
+            {
+                id: "test_id__03",
+                group: "test_group__02",
+                radius: 10,
+                citing_patents_count: 2,
+            },
+            {
+                id: "test_id__04",
+                group: "test_group__03",
                 radius: 10,
                 citing_patents_count: 2,
             },
