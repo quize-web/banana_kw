@@ -1,4 +1,4 @@
-let error = true
+// let error = true
 
 let res = [
     db.container.drop(),
@@ -9,9 +9,9 @@ let res = [
     }),
 ]
 
-printjson(res)
+// printjson(res)
 
-if (error) {
-    print('Error, exiting')
-    quit(1)
-}
+// if (error) {
+//     print('Error, exiting')
+//     quit(1)
+// }

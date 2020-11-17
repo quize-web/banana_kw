@@ -8,7 +8,9 @@ WORKDIR /usr/src/app
 
 RUN pip install eve
 RUN pip install httpie
+RUN pip install gunicorn
 
 #COPY . .
 
-CMD [ "python", "./src/main.py" ]
+#CMD [ "python", "./src/main.py" ]
+CMD [ "python", "./src/app.py" ]

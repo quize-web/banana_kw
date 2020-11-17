@@ -1,9 +1,56 @@
+import os
+import urllib.parse
+
 mongo_root_username = urllib.parse.quote_plus(os.getenv('MONGO_ROOT_USERNAME'))
 mongo_root_password = urllib.parse.quote_plus(os.getenv('MONGO_ROOT_PASSWORD'))
+mongo_database = os.getenv('MONGO_DATABASE')
+
+# print(1337)
+# print(mongo_root_username)
+# print(mongo_root_password)
+# print(mongo_database)
+
+# http://banana-kw.local/api/
+# http://banana-kw.local/api/container/
+# http://banana-kw.local/api/container/?where={%22link%22:%22111-qwe%22}
+my_settings = {
+    # 'MONGO_URI': 'mongodb://%s:%s@mongo:27017/links' % (mongo_root_username, mongo_root_password),
+    'MONGO_HOST': 'mongo',
+    'MONGO_PORT': 27017,
+    'MONGO_USERNAME': mongo_root_username,
+    'MONGO_PASSWORD': mongo_root_password,
+    'MONGO_DBNAME': mongo_database,
+    'MONGO_AUTH_SOURCE': 'admin',
+    # 'MONGO_AUTH_MECHANISM': 'SCRAM-SHA-256',
+    # 'MONGO_AUTH_MECHANISM': 'PLAIN',
+    # 'MONGO_AUTH_MECHANISM': 'DEFAULT',
+    # 'X_DOMAINS': '*',
+    'DOMAIN': {
+        # Описываем ресурс (коллекцию) `/container`
+        # 'links': {
+        'container': {
+            # Здесь мы описываем модель данных. Для валидации используется модуль Cerberus от автора Eve.
+            # Ознакомиться с ним в официальной документации модуля http://docs.python-cerberus.org/en/stable/.
+            # Либо прочитать заметки в официальной документации EVE http://python-eve.org/validation.html#validation.
+            'schema': {
+                'link': {
+                    'type': 'string',
+                    'required': True,
+                    # уникальное поле (индекс не создаётся, просто значение должно быть уникальным)
+                    'unique': True,
+                },
+                'data': {
+                    'type': 'string',
+                    'required': True,
+                },
+            }
+        },
+    }
+}
 
 # замените user, password, ds049945.mongolab.com, example на ваши данные доступа к БД.
 # MONGO_URI = "mongodb://user:password@ds049945.mongolab.com:49945/example"
-MONGO_URI = 'mongodb://%s:%s@mongo:27017/' % (mongo_root_username, mongo_root_password)
+# MONGO_URI = 'mongodb://%s:%s@mongo:27017/links' % (mongo_root_username, mongo_root_password)
 
 # По умолчанию Eve запускает API в режиме "read-only" (т.е. поддерживаются только GET запросы),
 # мы включаем поддержку методов POST, PUT, PATCH, DELETE.
@@ -91,23 +138,23 @@ MONGO_URI = 'mongodb://%s:%s@mongo:27017/' % (mongo_root_username, mongo_root_pa
 #     }
 # }
 
-DOMAIN = {
-    # Описываем ресурс `/links`
-    'links': {
-        # Здесь мы описываем модель данных. Для валидации используется модуль Cerberus от автора Eve.
-        # Ознакомиться с ним в официальной документации модуля http://docs.python-cerberus.org/en/stable/.
-        # Либо прочитать заметки в официальной документации EVE http://python-eve.org/validation.html#validation.
-        'schema': {
-            'link': {
-                'type': 'string',
-                'required': True,
-                # уникальное поле (индекс не создаётся, просто значение должно быть уникальным)
-                'unique': True,
-            },
-            'data': {
-                'type': 'string',
-                'required': True,
-            },
-        }
-    },
-}
+# DOMAIN = {
+#     # Описываем ресурс `/links`
+#     'links': {
+#         # Здесь мы описываем модель данных. Для валидации используется модуль Cerberus от автора Eve.
+#         # Ознакомиться с ним в официальной документации модуля http://docs.python-cerberus.org/en/stable/.
+#         # Либо прочитать заметки в официальной документации EVE http://python-eve.org/validation.html#validation.
+#         'schema': {
+#             'link': {
+#                 'type': 'string',
+#                 'required': True,
+#                 # уникальное поле (индекс не создаётся, просто значение должно быть уникальным)
+#                 'unique': True,
+#             },
+#             'data': {
+#                 'type': 'string',
+#                 'required': True,
+#             },
+#         }
+#     },
+# }

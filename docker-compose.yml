@@ -2,20 +2,20 @@ version: "3.8"
 services:
 
   # MONGO
-#  mongo:
-#    container_name: mongo
-#    build: ./mongo
-#    ports:
-#      - "27017:27017"
-#    restart: always
-#    environment:
-#      MONGO_INITDB_ROOT_USERNAME: ${MONGO_ROOT_USERNAME}
-#      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD}
-#      MONGO_INITDB_DATABASE: "links"
-#    networks:
-#      backend:
-#        aliases:
-#          - mongo_net
+  mongo:
+    container_name: mongo
+    build: ./mongo
+    ports:
+      - "27017:27017"
+    restart: always
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_ROOT_USERNAME}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD}
+      MONGO_INITDB_DATABASE: ${MONGO_DATABASE}
+    networks:
+      bananakw:
+        aliases:
+          - mongo_net
 
   # PYTHON BOT
 #  python_bot:
@@ -27,7 +27,7 @@ services:
 #      - TOKEN=${TELEGRAM_BOT_API_TOKEN}
 #      - MONGO_ROOT_USERNAME=${MONGO_ROOT_USERNAME}
 #      - MONGO_ROOT_PASSWORD=${MONGO_ROOT_PASSWORD}
-#      - MONGO_DATABASE=links
+#      - MONGO_DATABASE=${MONGO_DATABASE}
 #    volumes:
 #      - ./python_bot/src:/usr/src/app/src
 #    depends_on:
@@ -35,29 +35,38 @@ services:
 #    links: # TODO: нужно ли? Проверить как будет работать без этого
 #      - mongo
 #    networks:
-#      backend:
+#      bananakw:
 #        aliases:
 #          - python_bot_net
 
   # PYTHON API
-  python_api:
-    container_name: python_api
+  pythonapi:
+    container_name: pythonapi
     build: ./python_api
+#    ports:
+#      - "5000:5000"
+    expose:
+      - 5000
     ports:
-      - "8000:8000"
+      - 5000
     environment:
       - MONGO_ROOT_USERNAME=${MONGO_ROOT_USERNAME}
       - MONGO_ROOT_PASSWORD=${MONGO_ROOT_PASSWORD}
+      - MONGO_DATABASE=${MONGO_DATABASE}
+    volumes:
+      - ./python_api/src:/usr/src/app/src
     depends_on:
       - mongo
+#      - bot_nginx
+#    command: /usr/local/bin/gunicorn -w 2 -b :5000 app:app
     networks:
-      backend:
+      bananakw:
         aliases:
-          - python_api_net
+          - pythonapi_net
 
   # NGINX
-  nginx:
-    container_name: nginx
+  bot_nginx:
+    container_name: bot_nginx
     build: ./nginx
     volumes:
       - ./nginx/templates:/etc/nginx/templates
@@ -66,11 +75,15 @@ services:
     ports:
       - "80:80"
     depends_on:
-      - python_api
+      - pythonapi
+#    links:
+#      - pythonapi:pythonapi
     networks:
-      backend:
+      bananakw:
         aliases:
-          - nginx_net
+          - bot_nginx_net
 
 networks:
-  backend:
+  bananakw:
+    name: bananakw
+    driver: bridge

@@ -1,3 +1,10 @@
+#upstream backend {
+#    server python_api;
+#    #server python_api_net;
+#}
+#http {
+#    resolver 127.0.0.11 ipv6=off;
+#}
 server {
     listen 80;
     server_name banana-kw.local;
@@ -34,11 +41,27 @@ server {
     #    expires 14d;
     #}
 
-    location ~ ^/api/ {
+    location ~ ^\/api(\/.*)$ {
+        #try_files /index.html =404;
+        #index /index.html;
+
+        #resolver 127.0.0.1;
+        #resolver 0.0.0.0;
+        #resolver 127.0.0.11;
+        #resolver 8.8.8.8;
+        resolver 127.0.0.11 ipv6=off;
+
+        #proxy_pass http://pythonapi:5000$1;
+        proxy_pass http://pythonapi:5000$1$is_args$args;
+        #proxy_pass http://pythonapi.bananakw:5000$1;
+        #proxy_pass http://0.0.0.0:5000$1;
+        #proxy_pass http://backend:5000$1;
+        #proxy_pass http://pythonapi_net:5000$1;
+        #proxy_pass http://192.168.16.3:5000$1;
+
         proxy_set_header Host $host;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header X-Real-IP $remote_addr;
-        proxy_pass http://python_api:8000$request_uri;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
 
         #include /etc/nginx/uwsgi_params;
         #uwsgi_pass python_api;
@@ -48,8 +71,9 @@ server {
         #uwsgi_param X-Forwarded-Proto $http_x_forwarded_proto;
     }
 
-    # все остальные запросы отдаем в прокси (apache/php-fpm)
+    # все остальные запросы отдаем в index.html
     location / {
-        try_files $uri =404;
+        #try_files $uri =404;
+        index /index.html;
     }
 }
