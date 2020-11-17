@@ -7,6 +7,8 @@ import logging
 import sys
 import urllib.parse
 import json
+import pprint
+from inspect import getmembers
 
 from rutermextract import TermExtractor
 from typing import List
@@ -20,6 +22,7 @@ token = os.getenv('TOKEN')
 mongo_root_username = urllib.parse.quote_plus(os.getenv('MONGO_ROOT_USERNAME'))
 mongo_root_password = urllib.parse.quote_plus(os.getenv('MONGO_ROOT_PASSWORD'))
 mongo_database = os.getenv('MONGO_DATABASE')
+host = os.getenv('HOST')
 
 ### --- отладка
 
@@ -32,6 +35,10 @@ mongo_database = os.getenv('MONGO_DATABASE')
 
 # term extractor
 
+# f = open('/usr/src/app/src/log.txt', 'w')
+# f.write('\n')
+# f.close()
+#
 # term_extractor = TermExtractor()
 # test_text = """Турагенты не владеют средствами обслуживания и выступают посредниками между предприятием туристского обслуживания и покупателем туристской путевки, продвигая и реализуя туристский продукт.
 # С законодательством, закрепляющим деятельность туристских агентств и туроператоров в Российской Федерации, можно ознакомиться на сайте федерального агентства по туризму.
@@ -41,14 +48,32 @@ mongo_database = os.getenv('MONGO_DATABASE')
 # definition_list: List[List] = list()
 # for term in term_extractor.__call__(
 #         test_text,
-#         # nested=True
-#         nested=False
+#         nested=True
+#         # nested=False
 # ):
 #     # print(term.count)
-#     definition_list.append([term.normalized, term.count])
+#     words: List[List] = list()
+#     for word in term.words:
+#         words.append([
+#             word.parsed.word,
+#             str(word.parsed.tag),
+#             word.parsed.normal_form,
+#             word.parsed.score,
+#             repr(word.parsed.methods_stack),
+#         ])
+#
+#     definition_list.append([
+#         term.normalized,
+#         term.count,
+#         term.word_count,
+#         json.dumps(words),
+#     ])
+#     f = open('/usr/src/app/src/log.txt', 'a')
+#     f.write(term.normalized + ' ' + str(term.count) + ' ' + repr(term.words[0].parsed) + ' ' + str(term.word_count) + '\n')
+#     f.close()
 #
 # print(definition_list)
-# f = open('/usr/src/app/src/log.txt', 'w')
+# f = open('/usr/src/app/src/log.txt', 'a')
 # f.write('definition_list = ' + repr(definition_list) + '\n')
 # f.close()
 
@@ -114,7 +139,22 @@ def echo(update, context):
             nested=False
     ):
         # definition_list.append(term.normalized)
-        definition_list.append([term.normalized, term.count])
+        # definition_list.append([term.normalized, term.count])
+        words: List[List] = list()
+        for word in term.words:
+            words.append([
+                word.parsed.word,
+                str(word.parsed.tag),
+                word.parsed.normal_form,
+                word.parsed.score,
+                repr(word.parsed.methods_stack),
+            ])
+        definition_list.append([
+            term.normalized,
+            term.count,
+            term.word_count,
+            json.dumps(words),
+        ])
 
     # print(definition_list)
     # repr_definition_list = repr(definition_list)
@@ -125,13 +165,15 @@ def echo(update, context):
     # f.close()
 
     link_slug = insert(links, repr_definition_list)
+    text = 'Обработка текста завершена. Результат доступен по ссылке: %s/?link=%s' % (host, link_slug)
 
     context.bot.send_message(
         chat_id=update.effective_chat.id,
         # text=definition_list
         # text='Извлечение ключевых слов успешно завершено! Посмотреть результат Вы можете по данной ссылке: [ссылка]'
         # text=repr_definition_list
-        text=link_slug
+        # text=link_slug
+        text=text
     )
 
 # bot connect

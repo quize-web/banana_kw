@@ -27,10 +27,10 @@ server {
 
     # всю статику, которая реально существует,
     # отдаем пользователю напрямую без прокси
-    #location ~ \.(jpe?g|png|svg|ico)$ {
-    #    try_files $uri @php;
-    #    expires 28d;
-    #}
+    location ~ \.(jpe?g|png|svg|ico)$ {
+        try_files $uri =404;
+        expires 28d;
+    }
     location ~ \.(html|js|css)$ {
         try_files $uri =404;
         #try_files $uri @ver;

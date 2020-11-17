@@ -18,26 +18,27 @@ services:
           - mongo_net
 
   # PYTHON BOT
-#  python_bot:
-#    container_name: python_bot
-#    build: ./python_bot
-#    ports:
-#      - "8005:8000"
-#    environment:
-#      - TOKEN=${TELEGRAM_BOT_API_TOKEN}
-#      - MONGO_ROOT_USERNAME=${MONGO_ROOT_USERNAME}
-#      - MONGO_ROOT_PASSWORD=${MONGO_ROOT_PASSWORD}
-#      - MONGO_DATABASE=${MONGO_DATABASE}
-#    volumes:
-#      - ./python_bot/src:/usr/src/app/src
-#    depends_on:
-#      - mongo
-#    links: # TODO: нужно ли? Проверить как будет работать без этого
-#      - mongo
-#    networks:
-#      bananakw:
-#        aliases:
-#          - python_bot_net
+  python_bot:
+    container_name: python_bot
+    build: ./python_bot
+    ports:
+      - "8005:8000"
+    environment:
+      - TOKEN=${TELEGRAM_BOT_API_TOKEN}
+      - MONGO_ROOT_USERNAME=${MONGO_ROOT_USERNAME}
+      - MONGO_ROOT_PASSWORD=${MONGO_ROOT_PASSWORD}
+      - MONGO_DATABASE=${MONGO_DATABASE}
+      - HOST=${HOST}
+    volumes:
+      - ./python_bot/src:/usr/src/app/src
+    depends_on:
+      - mongo
+    links: # TODO: нужно ли? Проверить как будет работать без этого
+      - mongo
+    networks:
+      bananakw:
+        aliases:
+          - python_bot_net
 
   # PYTHON API
   pythonapi:
