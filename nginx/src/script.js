@@ -1,12 +1,140 @@
 // TODO: ...???
+function draw(data) {
+
+    let drag = function (simulation) {
+
+        function dragstarted(event, d) {
+            if (!event.active) simulation.alphaTarget(0.3).restart();
+            d.fx = d.x;
+            d.fy = d.y;
+        }
+
+        function dragged(event, d) {
+            d.fx = event.x;
+            d.fy = event.y;
+        }
+
+        function dragended(event, d) {
+            if (!event.active) simulation.alphaTarget(0);
+            d.fx = null;
+            d.fy = null;
+        }
+
+        return d3.drag()
+            .on("start", dragstarted)
+            .on("drag", dragged)
+            .on("end", dragended);
+    }
+
+    let color = function () {
+        const scale = d3.scaleOrdinal(d3.schemeCategory10);
+        return d => scale(d.group);
+    }
+
+    let width = 680;
+    let height = 680;
+
+    let chart = function () {
+        const links = data.links.map(d => Object.create(d));
+        const nodes = data.nodes.map(d => Object.create(d));
+
+        const simulation = d3.forceSimulation(nodes)
+            .force("link", d3.forceLink(links).id(d => d.id))
+            .force("charge", d3.forceManyBody())
+            .force("x", d3.forceX())
+            .force("y", d3.forceY());
+
+        const svg = d3.create("svg")
+            .attr("viewBox", [-width / 2, -height / 2, width, height]);
+
+        const link = svg.append("g")
+            .attr("stroke", "#999")
+            .attr("stroke-opacity", 0.6)
+            .selectAll("line")
+            .data(links)
+            .join("line")
+            .attr("stroke-width", d => Math.sqrt(d.value));
+
+        const node = svg.append("g")
+            .attr("stroke", "#fff")
+            .attr("stroke-width", 1.5)
+            .selectAll("circle")
+            .data(nodes)
+            .join("circle")
+            .attr("r", 5)
+            .attr("fill", color)
+            .call(drag(simulation));
+
+        node.append("title")
+            .text(d => d.id);
+
+        simulation.on("tick", () => {
+            link
+                .attr("x1", d => d.source.x)
+                .attr("y1", d => d.source.y)
+                .attr("x2", d => d.target.x)
+                .attr("y2", d => d.target.y);
+
+            node
+                .attr("cx", d => d.x)
+                .attr("cy", d => d.y);
+        });
+
+        // invalidation.then(() => simulation.stop());
+
+        return svg.node();
+    }
+
+    let svgNode = chart();
+    // console.log(svgNode);
+
+    let body = document.getElementsByTagName('body')[0];
+    body.appendChild(svgNode);
+
+}
+
+// TODO: ...???
+function makeData(items) {
+    // let data = [];
+
+    data = {
+        nodes: [
+            {
+                id: "test_id__01",
+                group: "test_group__01",
+                radius: 5,
+                citing_patents_count: 2,
+            },
+            {
+                id: "test_id__02",
+                group: "test_group__01",
+                radius: 10,
+                citing_patents_count: 2,
+            },
+        ],
+        links: [
+            {
+                source: "test_id__01",
+                target: "test_id__02",
+                value: 5,
+            },
+        ],
+    };
+
+    return data;
+}
+
+// TODO: ...???
 function getQueryParam(item) {
     let regex = new RegExp('[\?\&]' + item + '=([^\&]*)(\&?)', 'i');
     var value = window.location.search.match(regex);
     return value ? value[1] : null;
 }
 
+// ---
+
 let link = getQueryParam('link') || null;
-console.log('link:', link);
+// console.log('link:', link);
 if (link) {
     axios.get('/api/container', {
         params: {
@@ -14,23 +142,24 @@ if (link) {
         }
     })
         .then(function (resp) {
-            console.log(resp);
+            // console.log(resp);
             if (resp) {
 
-                let json = resp['data']['_items'][0]['data'];
-                // console.log(json);
+                let itemsJSON = resp['data']['_items'][0]['data'];
+                // console.log(itemsJSON);
 
-                let data = JSON.parse(json);
-                console.log(data);
+                let items = JSON.parse(itemsJSON);
+                // console.log(items);
 
-                data.forEach(function (item) {
+                items.forEach(function (item) {
                     let other = item[3];
                     if (typeof other === 'string') {
                         other = JSON.parse(item[3]);
                     }
-                    console.log(other);
+                    // console.log(other);
                 });
 
+                draw(makeData(items));
             }
         })
         .catch(function (err) {
