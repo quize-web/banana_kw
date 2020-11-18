@@ -198,6 +198,18 @@ function draw(data) {
         };
     }
 
+    let domain = function () {
+
+    }
+
+    let range = function () {
+
+    }
+
+    // let x = d3.scaleOrdinal()
+    //     .domain(data.groups)
+    //     .range([-100, 400, 500, 800, 1100, 1400, 770])
+
     // let width = 600;
     // let height = 200;
 
@@ -209,9 +221,24 @@ function draw(data) {
         const nodes = data.nodes.map(d => Object.create(d));
 
         const simulation = d3.forceSimulation(nodes)
-            .force("link", d3.forceLink(links).distance(150).id(d => d.id))
-            .force("charge", d3.forceManyBody())
-            .force("x", d3.forceX())
+            .force("link", d3.forceLink(links)
+                // .distance(50)
+                .distance(100)
+                // .distance(150)
+                // .distance(250)
+                // .distance(400)
+                // .distance(500)
+                .id(d => d.id))
+            .force("charge", d3.forceManyBody()
+                // .strength(-100)
+                .strength(-200)
+            )
+            // .force("x", d3.forceX())
+            .force("x", d3.forceX()
+                // .x(function (d) {
+                //     return x(d.linkGroup)
+                // })
+            )
             .force("y", d3.forceY());
 
         const svg = d3.create("svg")
@@ -381,6 +408,39 @@ function getItemColorGroup(item) {
 }
 
 // TODO: ...???
+function getWordLinkGroup(word) {
+    let linkGroup = 'null';
+    switch (linksMode) {
+        // case 'ewe': // каждый с каждым
+        //     //
+        //     break;
+        case 'case': // падеж
+            linkGroup = getCase(word[1]);
+            break;
+        case 'gender': // род
+
+            //
+
+            break;
+        case 'kinship': // родитель-потомок
+
+            //
+
+            break;
+    }
+    return linkGroup;
+}
+
+// TODO: ...???
+function getItemLinkGroup(item) {
+    let colorGroup = 'null';
+    if (item[2] === 1) { // кол-во слов
+        colorGroup = getWordLinkGroup(item[3][0]);
+    }
+    return colorGroup;
+}
+
+// TODO: ...???
 function getFirstWord(item) {
     return item[3][0];
 }
@@ -399,13 +459,13 @@ function getId(item) {
 function handleItems(items) {
     let handledItems = [];
 
-    const custom = true;
-    // const custom = false;
+    // const custom = true;
+    const custom = false;
 
-    const singleNorm = true;
-    // const singleNorm = false;
+    // const singleNorm = true;
+    const singleNorm = false;
 
-    const saveWord = function(item, word) {
+    const saveWord = function (item, word) {
         if (handledItems.hasOwnProperty(word[2])) {
             handledItems[word[2]]['uses']++;
         } else {
@@ -413,6 +473,7 @@ function handleItems(items) {
                 'uses': item[1],
                 'wordsCount': 1,
                 'colorGroup': getWordColorGroup(word),
+                'linkGroup': getWordLinkGroup(word),
             };
         }
     }
@@ -449,6 +510,7 @@ function handleItems(items) {
                     'uses': item[1],
                     'wordsCount': wordsCount, // 1
                     'colorGroup': getItemColorGroup(item), // можем получить цвет
+                    'linkGroup': getItemLinkGroup(item), // можем получить цвет
                 };
                 saveItemSingleNorm(item);
             } else { // несколько слов
@@ -456,6 +518,7 @@ function handleItems(items) {
                     'uses': item[1],
                     'wordsCount': wordsCount,
                     'colorGroup': 'null', // НЕ можем получить цвет (несколько слов)
+                    'linkGroup': 'null', // НЕ можем получить связь (несколько слов)
                 };
                 if (custom) {
                     item[3].forEach(function (word) {
@@ -467,6 +530,74 @@ function handleItems(items) {
     });
 
     return handledItems;
+}
+
+// TODO: ...???
+function makeLinks(handledItems) {
+    let links = [];
+    let groups = [];
+
+    let saveGroup = function (name) {
+        if (groups.includes(name) === false) {
+            groups.push(name);
+        }
+    }
+
+    switch (linksMode) {
+        case 'ewe': // каждый с каждым
+
+            for (let parentId in handledItems) {
+                if (handledItems.hasOwnProperty(parentId)) {
+                    for (let childId in handledItems) {
+                        if (handledItems.hasOwnProperty(childId)) {
+                            if (parentId !== childId) {
+                                links.push({
+                                    source: parentId,
+                                    target: childId,
+                                    value: 5,
+                                });
+                            }
+                        }
+                    }
+                }
+            }
+
+            break;
+        case 'case': // падеж
+
+            for (let parentId in handledItems) {
+                if (handledItems.hasOwnProperty(parentId)) {
+                    saveGroup(handledItems[parentId]['linkGroup']);
+                    for (let childId in handledItems) {
+                        if (handledItems.hasOwnProperty(childId)) {
+                            if (
+                                parentId !== childId
+                                && handledItems[parentId]['linkGroup'] === handledItems[childId]['linkGroup']
+                            ) {
+                                links.push({
+                                    source: parentId,
+                                    target: childId,
+                                    value: 5,
+                                });
+                            }
+                        }
+                    }
+                }
+            }
+
+            break;
+        case 'gender': // род
+
+            //
+
+            break;
+        case 'kinship': // родитель-потомок
+
+            //
+
+            break;
+    }
+    return [links, groups];
 }
 
 // TODO: ...???
@@ -500,9 +631,10 @@ function makeData(items) {
     }
     console.log('nodes:', nodes, nodes.length);
 
-    let links = [];
-    //
-    console.log('links:', links);
+    // let links = [];
+    let linksAndGroups = makeLinks(handledItems);
+    console.log('links:', linksAndGroups[0]);
+    console.log('groups:', linksAndGroups[1]);
 
     // dummy
     // let data = {
@@ -541,7 +673,7 @@ function makeData(items) {
     //     ],
     // };
 
-    return {nodes: nodes, links: links};
+    return {nodes: nodes, links: linksAndGroups[0], groups: linksAndGroups[1]};
 }
 
 // TODO: ...???
@@ -557,9 +689,10 @@ let sizeMode = 'default'; // важность слов и количество �
 
 let colorMode = 'gender'; // цвет по роду
 
-let linksMode = 'ewe'; // каждый с каждым
-// let linksMode = 'case'; // по падежу
+// let linksMode = 'ewe'; // каждый с каждым
+let linksMode = 'case'; // по падежу
 // let linksMode = 'gender'; // по роду
+// let linksMode = 'kinship'; // родитель-потомок
 
 let link = getQueryParam('link') || null;
 // console.log('link:', link);
