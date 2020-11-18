@@ -230,10 +230,10 @@ function draw(data) {
                 // .distance(500)
                 .id(d => d.id))
             .force("charge", d3.forceManyBody()
-                // .strength(-100)
-                // .strength(-150)
-                // .strength(-200)
-                .strength(-250)
+                    // .strength(-100)
+                    // .strength(-150)
+                    // .strength(-200)
+                    .strength(-250)
                 // .strength(-300)
                 // .strength(-500)
             )
@@ -363,7 +363,7 @@ function getItemRadius(item) {
     let c = 1; // коэф. для кол-ва слов
 
     let x = Math.pow(item[usesKey], a) * b;
-    console.log(x);
+    // console.log(x);
     if (x > 22) {
         x = 22;
     }
@@ -627,7 +627,10 @@ function makeData(items) {
     const removeWeak = false;
     // const removeWeak = true;
 
-    if (removeWeak) {
+    if (
+        removeWeak
+        && Object.keys(handledItems).length > 60
+    ) {
         for (let id in handledItems) {
             if (handledItems.hasOwnProperty(id)) {
                 if (
@@ -651,12 +654,12 @@ function makeData(items) {
     // });
     for (let id in handledItems) {
         if (handledItems.hasOwnProperty(id)) {
-                nodes.push({
-                    id: id,
-                    group: handledItems[id]['colorGroup'],
-                    radius: getItemRadius(handledItems[id]),
-                    fontSize: getItemFontSize(handledItems[id]),
-                });
+            nodes.push({
+                id: id,
+                group: handledItems[id]['colorGroup'],
+                radius: getItemRadius(handledItems[id]),
+                fontSize: getItemFontSize(handledItems[id]),
+            });
         }
     }
     console.log('nodes:', nodes, nodes.length);
