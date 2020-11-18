@@ -231,7 +231,10 @@ function draw(data) {
                 .id(d => d.id))
             .force("charge", d3.forceManyBody()
                 // .strength(-100)
-                .strength(-200)
+                // .strength(-200)
+                .strength(-250)
+                // .strength(-300)
+                // .strength(-500)
             )
             // .force("x", d3.forceX())
             .force("x", d3.forceX()
@@ -350,13 +353,24 @@ function getItemRadius(item) {
     // let wordsCountKey = 2;
     let wordsCountKey = 'wordsCount';
 
-    let radius = 1;
-    let a = 5; // коэф. для кол-ва употреблений
-    let b = 2; // коэф. для кол-ва слов
+    let radius = 4;
+
+    // let a = 4; // коэф. для кол-ва употреблений
+    // let b = 2; // коэф. для кол-ва слов
+    let a = 3; // коэф. для кол-ва употреблений
+    let b = 1; // коэф. для кол-ва употреблений
+    let c = 1; // коэф. для кол-ва слов
+
+    let x = Math.pow(item[usesKey], a) * b;
+    console.log(x);
+    if (x > 22) {
+        x = 22;
+    }
 
     switch (sizeMode) {
         case 'default':
-            radius += item[usesKey] * a + item[wordsCountKey] * b;
+            // radius += item[usesKey] * a + item[wordsCountKey] * b;
+            radius += x + Math.pow(item[wordsCountKey], c);
             break;
     }
 
@@ -371,8 +385,8 @@ function getItemFontSize(item) {
     // let wordsCountKey = 2;
     let wordsCountKey = 'wordsCount';
 
-    let fontSize = 6;
-    let a = 5; // коэф. для кол-ва употреблений
+    let fontSize = 5;
+    let a = 4; // коэф. для кол-ва употреблений
     let b = 2; // коэф. для кол-ва слов
 
     switch (sizeMode) {
@@ -573,6 +587,7 @@ function makeLinks(handledItems) {
                             if (
                                 parentId !== childId
                                 && handledItems[parentId]['linkGroup'] === handledItems[childId]['linkGroup']
+                                && handledItems[parentId]['linkGroup'] !== 'null'
                             ) {
                                 links.push({
                                     source: parentId,
