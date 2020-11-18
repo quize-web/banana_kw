@@ -317,26 +317,43 @@ function draw(data) {
 
 // TODO: ...???
 function getItemRadius(item) {
+    // let usesKey = 1;
+    let usesKey = 'uses';
+
+    // let wordsCountKey = 2;
+    let wordsCountKey = 'wordsCount';
+
     let radius = 1;
-    let a = 5; // кол-во употреблений
-    let b = 2; // кол-во слов
+    let a = 5; // коэф. для кол-ва употреблений
+    let b = 2; // коэф. для кол-ва слов
+
     switch (sizeMode) {
         case 'default':
-            radius += item[1] * a + item[2] * b;
+            radius += item[usesKey] * a + item[wordsCountKey] * b;
             break;
     }
+
     return radius;
 }
 
 // TODO: ...???
 function getItemFontSize(item) {
-    let fontSize = 8;
-    let x = 5;
+    // let usesKey = 1;
+    let usesKey = 'uses';
+
+    // let wordsCountKey = 2;
+    let wordsCountKey = 'wordsCount';
+
+    let fontSize = 6;
+    let a = 5; // коэф. для кол-ва употреблений
+    let b = 2; // коэф. для кол-ва слов
+
     switch (sizeMode) {
         case 'default':
-            fontSize += (item[1] + item[2]) * x;
+            fontSize += item[usesKey] * a + item[wordsCountKey] * b;
             break;
     }
+
     return `${fontSize}px`;
 }
 
@@ -454,23 +471,33 @@ function handleItems(items) {
 
 // TODO: ...???
 function makeData(items) {
-    console.log(items);
+    console.log('items:', items, items.length);
     console.log('modes:', [sizeMode, colorMode, linksMode].join(' | '));
 
     let handledItems = handleItems(items);
-    console.log('handled', handledItems, Object.keys(handledItems).length);
+    console.log('handled items:', handledItems, Object.keys(handledItems).length);
 
     //  Цвет, размер, связи
 
     let nodes = [];
-    items.forEach(function (item) {
-        // nodes.push({
-        //     id: getId(item),
-        //     radius: getItemRadius(item),
-        //     group: getItemColorGroup(item),
-        //     fontSize: getItemFontSize(item),
-        // });
-    });
+    // items.forEach(function (item) {
+    //     nodes.push({
+    //         id: getId(item),
+    //         radius: getItemRadius(item),
+    //         group: getItemColorGroup(item),
+    //         fontSize: getItemFontSize(item),
+    //     });
+    // });
+    for (let id in handledItems) {
+        if (handledItems.hasOwnProperty(id)) {
+            nodes.push({
+                id: id,
+                group: handledItems[id]['colorGroup'],
+                radius: getItemRadius(handledItems[id]),
+                fontSize: getItemFontSize(handledItems[id]),
+            });
+        }
+    }
     console.log('nodes:', nodes, nodes.length);
 
     let links = [];
