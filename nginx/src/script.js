@@ -1,5 +1,23 @@
+// let test = "PRTF,perf,tran,past,pssv masc,sing,ablt";
+// let speechPart = getSpeechParts(test);
+// let wordCase = getCase(test);
+// console.log('speechPart:', speechPart);
+// console.log('wordCase:', wordCase);
+
 // TODO: ...???
-function getSpeechParts(slug) {
+function findGrammeme(slugs, grammemes) {
+    let result = null;
+    let IN = Object.keys(grammemes).join('|');
+    let regex = new RegExp(`\\b(${IN})\\b`, 'i');
+    let matches = slugs.match(regex);
+    if (matches.length === 2) {
+        result = grammemes[matches[1]];
+    }
+    return result;
+}
+
+// Часть речи
+function getSpeechParts(slugs) {
     let speechParts = {
         'NOUN': 'имя существительное',
         // 'ADJF': 'имя прилагательное (полное)',
@@ -25,13 +43,12 @@ function getSpeechParts(slug) {
         'PRCL': 'частица',
         'INTJ': 'междометие',
     };
-    return (speechParts.hasOwnProperty(slug))
-        ? speechParts[slug]
-        : null;
+    let grammeme = findGrammeme(slugs, speechParts);
+    return grammeme ? grammeme : null;
 }
 
-// TODO: ...???
-function getCase(slug) {
+// Падеж
+function getCase(slugs) {
     let cases = {
         'nomn': 'именительный',
         'gent': 'родительный',
@@ -47,13 +64,12 @@ function getCase(slug) {
         // 'loc2': 'второй предложный (местный)',
         'loc2': 'предложный',
     };
-    return (cases.hasOwnProperty(slug))
-        ? cases[slug]
-        : null;
+    let grammeme = findGrammeme(slugs, cases);
+    return grammeme ? grammeme : null;
 }
 
-// TODO: ...???
-function getCountType(slug) {
+// Число
+function getCountType(slugs) {
     let countTypes = {
         'sing': 'единственное число',
         'Sgtm sing': 'единственное число',
@@ -63,13 +79,12 @@ function getCountType(slug) {
         'Pltm': 'множественное число',
         'Fixd': null, // неизменяемое
     };
-    return (countTypes.hasOwnProperty(slug))
-        ? countTypes[slug]
-        : null;
+    let grammeme = findGrammeme(slugs, countTypes);
+    return grammeme ? grammeme : null;
 }
 
-// TODO: ...???
-function getGender(slug) {
+// Род
+function getGender(slugs) {
     let genders = {
         'masc': 'мужской род',
         'femn': 'женский род',
@@ -77,70 +92,64 @@ function getGender(slug) {
         'Ms-f': null,
         'GNdr': null,
     };
-    return (genders.hasOwnProperty(slug))
-        ? genders[slug]
-        : null;
+    let grammeme = findGrammeme(slugs, genders);
+    return grammeme ? grammeme : null;
 }
 
-// TODO: ...???
-function getForm(slug) {
-    let genders = {
+// Вид
+function getForm(slugs) {
+    let forms = {
         'perf': 'совершенный вид',
         'impf': 'несовершенный вид',
     };
-    return (genders.hasOwnProperty(slug))
-        ? genders[slug]
-        : null;
+    let grammeme = findGrammeme(slugs, forms);
+    return grammeme ? grammeme : null;
 }
 
-// TODO: ...???
-function getTime(slug) {
+// Время
+function getTime(slugs) {
     let genders = {
         'pres': 'настоящее время',
         'past': 'прошедшее время',
         'futr': 'будущее время',
     };
-    return (genders.hasOwnProperty(slug))
-        ? genders[slug]
-        : null;
+    let grammeme = findGrammeme(slugs, genders);
+    return grammeme ? grammeme : null;
 }
 
 // TODO: ...???
-function getCollateralCategory(slug) {
-    let genders = {
+function getCollateralCategory(slugs) {
+    let collateralCategories = {
         'actv': 'действительный залог',
         'pssv': 'страдательный залог',
         // ...
     };
-    return (genders.hasOwnProperty(slug))
-        ? genders[slug]
-        : null;
+    let grammeme = findGrammeme(slugs, collateralCategories);
+    return grammeme ? grammeme : null;
 }
 
 // TODO: ...???
-function getTransitivity(slug) {
-    let genders = {
+function getTransitivity(slugs) {
+    let transitivity = {
         'tran': 'переходный',
         'intr': 'непереходный',
     };
-    return (genders.hasOwnProperty(slug))
-        ? genders[slug]
-        : null;
+    let grammeme = findGrammeme(slugs, transitivities);
+    return grammeme ? grammeme : null;
 }
 
-// TODO: ...???
-function getLifeStatus(slug) {
+// Одушевленность
+function getLifeStatus(slugs) {
     let lifeStatuses = {
         'inan': 'неодушевлённое',
         'anim': 'одушевлённое',
     };
-    return (genders.hasOwnProperty(slug))
-        ? genders[slug]
-        : null;
+    let grammeme = findGrammeme(slugs, lifeStatuses);
+    return grammeme ? grammeme : null;
 }
 
 // TODO: ...???
-function getOtherGrammemes() {
+function getOtherGrammemes(slugs) {
     let other = {
         'LATN': null, // Токен состоит из латинских букв (например, “foo-bar” или “Maßstab”)
         'PNCT': null, // Пунктуация (например, , или !? или …)
@@ -150,9 +159,8 @@ function getOtherGrammemes() {
         'ROMN': null, // Римское число (например, XI)
         'UNKN': null, // Токен не удалось разобрать
     };
-    return (other.hasOwnProperty(slug))
-        ? other[slug]
-        : null;
+    let grammeme = findGrammeme(slugs, other);
+    return grammeme ? grammeme : null;
 }
 
 // TODO: ...???
