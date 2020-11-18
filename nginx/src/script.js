@@ -1,4 +1,161 @@
 // TODO: ...???
+function getSpeechParts(slug) {
+    let speechParts = {
+        'NOUN': 'имя существительное',
+        // 'ADJF': 'имя прилагательное (полное)',
+        'ADJF': 'имя прилагательное',
+        // 'ADJS': 'имя прилагательное (краткое)',
+        'ADJS': 'имя прилагательное',
+        'COMP': 'компаратив',
+        // 'VERB': 'глагол (личная форма)',
+        'VERB': 'глагол',
+        // 'INFN': 'глагол (инфинитив)',
+        'INFN': 'глагол',
+        // 'PRTF': 'причастие (полное)',
+        'PRTF': 'причастие',
+        // 'PRTS': 'причастие (краткое)',
+        'PRTS': 'причастие',
+        'GRND': 'деепричастие',
+        'NUMR': 'числительное',
+        'ADVB': 'наречие',
+        'NPRO': 'местоимение-существительное',
+        'PRED': 'предикатив',
+        'PREP': 'предлог',
+        'CONJ': 'союз',
+        'PRCL': 'частица',
+        'INTJ': 'междометие',
+    };
+    return (speechParts.hasOwnProperty(slug))
+        ? speechParts[slug]
+        : null;
+}
+
+// TODO: ...???
+function getCase(slug) {
+    let cases = {
+        'nomn': 'именительный',
+        'gent': 'родительный',
+        'datv': 'дательный',
+        'accs': 'винительный',
+        'ablt': 'творительный',
+        'loct': 'предложный',
+        'voct': 'звательный',
+        // 'gen2': 'второй родительный (частичный)',
+        'gen2': 'родительный',
+        // 'acc2': 'второй винительный',
+        'acc2': 'винительный',
+        // 'loc2': 'второй предложный (местный)',
+        'loc2': 'предложный',
+    };
+    return (cases.hasOwnProperty(slug))
+        ? cases[slug]
+        : null;
+}
+
+// TODO: ...???
+function getCountType(slug) {
+    let countTypes = {
+        'sing': 'единственное число',
+        'Sgtm sing': 'единственное число',
+        'Sgtm': 'единственное число',
+        'plur': 'множественное число',
+        'Pltm plur': 'множественное число',
+        'Pltm': 'множественное число',
+        'Fixd': null, // неизменяемое
+    };
+    return (countTypes.hasOwnProperty(slug))
+        ? countTypes[slug]
+        : null;
+}
+
+// TODO: ...???
+function getGender(slug) {
+    let genders = {
+        'masc': 'мужской род',
+        'femn': 'женский род',
+        'neut': 'средний род',
+        'Ms-f': null,
+        'GNdr': null,
+    };
+    return (genders.hasOwnProperty(slug))
+        ? genders[slug]
+        : null;
+}
+
+// TODO: ...???
+function getForm(slug) {
+    let genders = {
+        'perf': 'совершенный вид',
+        'impf': 'несовершенный вид',
+    };
+    return (genders.hasOwnProperty(slug))
+        ? genders[slug]
+        : null;
+}
+
+// TODO: ...???
+function getTime(slug) {
+    let genders = {
+        'pres': 'настоящее время',
+        'past': 'прошедшее время',
+        'futr': 'будущее время',
+    };
+    return (genders.hasOwnProperty(slug))
+        ? genders[slug]
+        : null;
+}
+
+// TODO: ...???
+function getCollateralCategory(slug) {
+    let genders = {
+        'actv': 'действительный залог',
+        'pssv': 'страдательный залог',
+        // ...
+    };
+    return (genders.hasOwnProperty(slug))
+        ? genders[slug]
+        : null;
+}
+
+// TODO: ...???
+function getTransitivity(slug) {
+    let genders = {
+        'tran': 'переходный',
+        'intr': 'непереходный',
+    };
+    return (genders.hasOwnProperty(slug))
+        ? genders[slug]
+        : null;
+}
+
+// TODO: ...???
+function getLifeStatus(slug) {
+    let lifeStatuses = {
+        'inan': 'неодушевлённое',
+        'anim': 'одушевлённое',
+    };
+    return (genders.hasOwnProperty(slug))
+        ? genders[slug]
+        : null;
+}
+
+// TODO: ...???
+function getOtherGrammemes() {
+    let other = {
+        'LATN': null, // Токен состоит из латинских букв (например, “foo-bar” или “Maßstab”)
+        'PNCT': null, // Пунктуация (например, , или !? или …)
+        'NUMB': null, // Число (например, “204” или “3.14”)
+        'intg': null, // целое число (например, “204”)
+        'real': null, // вещественное число (например, “3.14”)
+        'ROMN': null, // Римское число (например, XI)
+        'UNKN': null, // Токен не удалось разобрать
+    };
+    return (other.hasOwnProperty(slug))
+        ? other[slug]
+        : null;
+}
+
+// TODO: ...???
 function draw(data) {
 
     let drag = function (simulation) {
@@ -131,8 +288,8 @@ function draw(data) {
             labels
                 .attr("x", d => d.x + 10)
                 .attr("y", d => d.y - 5)
-                // .attr("cx", d => d.x)
-                // .attr("cy", d => d.y);
+            // .attr("cx", d => d.x)
+            // .attr("cy", d => d.y);
         });
 
         // invalidation.then(() => simulation.stop());
@@ -216,14 +373,14 @@ if (link) {
                 // console.log(itemsJSON);
 
                 let items = JSON.parse(itemsJSON);
-                // console.log(items);
+                console.log(items);
 
                 items.forEach(function (item) {
                     let other = item[3];
                     if (typeof other === 'string') {
                         other = JSON.parse(item[3]);
                     }
-                    // console.log(other);
+                    console.log(other);
                 });
 
                 draw(makeData(items));
