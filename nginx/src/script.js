@@ -10,7 +10,7 @@ function findGrammeme(slugs, grammemes) {
     let IN = Object.keys(grammemes).join('|');
     let regex = new RegExp(`\\b(${IN})\\b`, 'i');
     let matches = slugs.match(regex);
-    if (matches.length === 2) {
+    if (matches && matches.length === 2) {
         result = grammemes[matches[1]];
     }
     return result;
@@ -231,7 +231,8 @@ function draw(data) {
             .selectAll("circle")
             .data(nodes)
             .join("circle")
-            .attr("r", 5)
+            // .attr("r", 5)
+            .attr("r", d => d.radius)
             .attr("fill", color());
 
         // const labels = node
@@ -253,7 +254,8 @@ function draw(data) {
             .data(nodes)
             .join("text")
             .style('fill', '#000')
-            .style('font-size', '14px')
+            // .style('font-size', '14px')
+            .style('font-size', d => d.fontSize)
             // .style('font-weight', 'bold')
             .text(d => d.id);
 
@@ -314,46 +316,205 @@ function draw(data) {
 }
 
 // TODO: ...???
+function getItemRadius(item) {
+    let radius = 1;
+    let a = 5; // кол-во употреблений
+    let b = 2; // кол-во слов
+    switch (sizeMode) {
+        case 'default':
+            radius += item[1] * a + item[2] * b;
+            break;
+    }
+    return radius;
+}
+
+// TODO: ...???
+function getItemFontSize(item) {
+    let fontSize = 8;
+    let x = 5;
+    switch (sizeMode) {
+        case 'default':
+            fontSize += (item[1] + item[2]) * x;
+            break;
+    }
+    return `${fontSize}px`;
+}
+
+// TODO: ...???
+function getWordColorGroup(word) {
+    let colorGroup = 'null';
+    switch (colorMode) {
+        case 'gender':
+            let gender = getGender(word[1]);
+            if (gender) {
+                colorGroup = gender;
+            }
+            break;
+    }
+    return colorGroup;
+}
+
+// TODO: ...???
+function getItemColorGroup(item) {
+    let colorGroup = 'null';
+    if (item[2] === 1) { // кол-во слов
+        colorGroup = getWordColorGroup(item[3][0]);
+    }
+    return colorGroup;
+}
+
+// TODO: ...???
+function getFirstWord(item) {
+    return item[3][0];
+}
+
+// TODO: ...???
+function getId(item) {
+    if (item[2] === 1) { // кол-во слов
+        return getFirstWord(item)[2];
+        // return item[0];
+    } else {
+        return item[0];
+    }
+}
+
+// TODO: ...???
+function handleItems(items) {
+    let handledItems = [];
+
+    const custom = true;
+    // const custom = false;
+
+    const singleNorm = true;
+    // const singleNorm = false;
+
+    const saveWord = function(item, word) {
+        if (handledItems.hasOwnProperty(word[2])) {
+            handledItems[word[2]]['uses']++;
+        } else {
+            handledItems[word[2]] = {
+                'uses': item[1],
+                'wordsCount': 1,
+                'colorGroup': getWordColorGroup(word),
+            };
+        }
+    }
+
+    const saveItemSingleNorm = function (item) {
+        if (custom && singleNorm) {
+            let firstWord = getFirstWord(item);
+            saveWord(item, firstWord);
+        }
+    }
+
+    items.forEach(function (item) {
+        // let norm = getId(item);
+        let id = item[0];
+        let wordsCount = item[2];
+        if (handledItems.hasOwnProperty(id)) { // слово существует в мешке
+
+            handledItems[id]['uses']++; // обновляем юзы
+            if (custom) { // кастомная логика
+                if (wordsCount === 1) { // 1 слово
+                    saveItemSingleNorm(item);
+                } else { // несколько слов
+                    item[3].forEach(function (word) {
+                        handledItems[word[2]]['uses']++;
+                    });
+                }
+            }
+
+        } else { // слово отсутствует в мешке
+
+            if (wordsCount === 1) { // 1 слово
+                // пушим сам item и его norm
+                handledItems[id] = {
+                    'uses': item[1],
+                    'wordsCount': wordsCount, // 1
+                    'colorGroup': getItemColorGroup(item), // можем получить цвет
+                };
+                saveItemSingleNorm(item);
+            } else { // несколько слов
+                handledItems[id] = {
+                    'uses': item[1],
+                    'wordsCount': wordsCount,
+                    'colorGroup': 'null', // НЕ можем получить цвет (несколько слов)
+                };
+                if (custom) {
+                    item[3].forEach(function (word) {
+                        saveWord(item, word);
+                    });
+                }
+            }
+        }
+    });
+
+    return handledItems;
+}
+
+// TODO: ...???
 function makeData(items) {
-    // let data = [];
+    console.log(items);
+    console.log('modes:', [sizeMode, colorMode, linksMode].join(' | '));
 
-    data = {
-        nodes: [
-            {
-                id: "test_id__01",
-                group: "test_group__01",
-                radius: 5,
-                citing_patents_count: 2,
-            },
-            {
-                id: "test_id__02",
-                group: "test_group__01",
-                radius: 10,
-                citing_patents_count: 2,
-            },
-            {
-                id: "test_id__03",
-                group: "test_group__02",
-                radius: 10,
-                citing_patents_count: 2,
-            },
-            {
-                id: "test_id__04",
-                group: "test_group__03",
-                radius: 10,
-                citing_patents_count: 2,
-            },
-        ],
-        links: [
-            {
-                source: "test_id__01",
-                target: "test_id__02",
-                value: 5,
-            },
-        ],
-    };
+    let handledItems = handleItems(items);
+    console.log('handled', handledItems, Object.keys(handledItems).length);
 
-    return data;
+    //  Цвет, размер, связи
+
+    let nodes = [];
+    items.forEach(function (item) {
+        // nodes.push({
+        //     id: getId(item),
+        //     radius: getItemRadius(item),
+        //     group: getItemColorGroup(item),
+        //     fontSize: getItemFontSize(item),
+        // });
+    });
+    console.log('nodes:', nodes, nodes.length);
+
+    let links = [];
+    //
+    console.log('links:', links);
+
+    // dummy
+    // let data = {
+    //     nodes: [
+    //         {
+    //             id: "test_id__01",
+    //             group: "test_group__01",
+    //             radius: 5,
+    //             citing_patents_count: 2,
+    //         },
+    //         {
+    //             id: "test_id__02",
+    //             group: "test_group__01",
+    //             radius: 10,
+    //             citing_patents_count: 2,
+    //         },
+    //         {
+    //             id: "test_id__03",
+    //             group: "test_group__02",
+    //             radius: 10,
+    //             citing_patents_count: 2,
+    //         },
+    //         {
+    //             id: "test_id__04",
+    //             group: "test_group__03",
+    //             radius: 10,
+    //             citing_patents_count: 2,
+    //         },
+    //     ],
+    //     links: [
+    //         {
+    //             source: "test_id__01",
+    //             target: "test_id__02",
+    //             value: 5,
+    //         },
+    //     ],
+    // };
+
+    return {nodes: nodes, links: links};
 }
 
 // TODO: ...???
@@ -364,6 +525,14 @@ function getQueryParam(item) {
 }
 
 // ---
+
+let sizeMode = 'default'; // важность слов и количество слов
+
+let colorMode = 'gender'; // цвет по роду
+
+let linksMode = 'ewe'; // каждый с каждым
+// let linksMode = 'case'; // по падежу
+// let linksMode = 'gender'; // по роду
 
 let link = getQueryParam('link') || null;
 // console.log('link:', link);
@@ -381,14 +550,13 @@ if (link) {
                 // console.log(itemsJSON);
 
                 let items = JSON.parse(itemsJSON);
-                console.log(items);
+                // console.log(items);
 
                 items.forEach(function (item) {
-                    let other = item[3];
-                    if (typeof other === 'string') {
-                        other = JSON.parse(item[3]);
+                    if (typeof item[3] === 'string') {
+                        item[3] = JSON.parse(item[3]);
                     }
-                    console.log(other);
+                    // console.log(item);
                 });
 
                 draw(makeData(items));
@@ -401,7 +569,3 @@ if (link) {
             //
         });
 }
-
-// let res = '[["туристский продукт",4],["туроператоры",2],["реализация",2],["продвижение",2],["смена статуса компаний",1],["российский союз туриндустрии",1],["правовое регулирование взаимоотношений",1],["федеральное агентство",1],["туроператорская деятельность",1],["туристский обслуживание",1],["туристские агентства",1],["туристская путёвка",1],["туристический бизнес",1],["туристические агентства",1],["турагентская деятельность",1],["страховые компании",1],["страховой случай",1],["страховой полисы",1],["страховой возмещение",1],["статус туроператора",1],["статус турагентства",1],["средства обслуживания",1],["российская федерация",1],["российская ассоциация",1],["реализующая турпродукт",1],["проданный туроператор",1],["приобретший турпродукт",1],["подобное турагент",1],["осуществляющие реализация",1],["конечный потребители",1],["закрепляющий деятельность",1],["законодательное запрет",1],["действующий законодательство",1],["бывший туроператор",1],["формирование",1],["туристы",1],["турист",1],["туризм",1],["турагенты",1],["турагент",1],["трудности",1],["сфера",1],["ситуация",1],["сила",1],["сайт",1],["россия",1],["рата",1],["проблемы",1],["предприятие",1],["практика",1],["потребитель",1],["посредники",1],["получение",1],["покупатель",1],["отсутствие",1],["ответственность",1],["наступление",1],["компания",1],["законодательство",1]]';
-
-//
