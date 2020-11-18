@@ -231,6 +231,7 @@ function draw(data) {
                 .id(d => d.id))
             .force("charge", d3.forceManyBody()
                 // .strength(-100)
+                // .strength(-150)
                 // .strength(-200)
                 .strength(-250)
                 // .strength(-300)
@@ -623,7 +624,21 @@ function makeData(items) {
     let handledItems = handleItems(items);
     console.log('handled items:', handledItems, Object.keys(handledItems).length);
 
-    //  Цвет, размер, связи
+    const removeWeak = false;
+    // const removeWeak = true;
+
+    if (removeWeak) {
+        for (let id in handledItems) {
+            if (handledItems.hasOwnProperty(id)) {
+                if (
+                    handledItems[id]['uses'] < 2
+                    && handledItems[id]['wordsCount'] === 1
+                ) {
+                    delete handledItems[id];
+                }
+            }
+        }
+    }
 
     let nodes = [];
     // items.forEach(function (item) {
@@ -636,12 +651,12 @@ function makeData(items) {
     // });
     for (let id in handledItems) {
         if (handledItems.hasOwnProperty(id)) {
-            nodes.push({
-                id: id,
-                group: handledItems[id]['colorGroup'],
-                radius: getItemRadius(handledItems[id]),
-                fontSize: getItemFontSize(handledItems[id]),
-            });
+                nodes.push({
+                    id: id,
+                    group: handledItems[id]['colorGroup'],
+                    radius: getItemRadius(handledItems[id]),
+                    fontSize: getItemFontSize(handledItems[id]),
+                });
         }
     }
     console.log('nodes:', nodes, nodes.length);
