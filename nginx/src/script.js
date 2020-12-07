@@ -474,22 +474,40 @@ function getId(item) {
 function handleItems(items) {
     let handledItems = [];
 
-    // const custom = true;
-    const custom = false;
+    const tf_idf = true;
+    // const tf_idf = false;
+
+    const custom = true;
+    // const custom = false;
+
+    const divide = true;
+    // const divide = false;
 
     // const singleNorm = true;
     const singleNorm = false;
 
-    const saveWord = function (item, word) {
-        if (handledItems.hasOwnProperty(word[2])) {
-            handledItems[word[2]]['uses']++;
+    let documentTotal = 0;
+    let wordDocumentsCount = {};
+
+    const saveWord = function (item, word, newDocument) {
+        if (newDocument && divide === false) {
+
         } else {
-            handledItems[word[2]] = {
-                'uses': item[1],
-                'wordsCount': 1,
-                'colorGroup': getWordColorGroup(word),
-                'linkGroup': getWordLinkGroup(word),
-            };
+            if (handledItems.hasOwnProperty(word[2])) {
+                handledItems[word[2]]['uses']++;
+            } else {
+                handledItems[word[2]] = {
+                    'uses': item[1],
+                    'wordsCount': 1,
+                    'colorGroup': getWordColorGroup(word),
+                    'linkGroup': getWordLinkGroup(word),
+                };
+            }
+        }
+
+        if (newDocument) {
+            wordDocumentsCount[word[2]] = wordDocumentsCount[word[2]] || 0;
+            wordDocumentsCount[word[2]]++;
         }
     }
 
@@ -518,6 +536,7 @@ function handleItems(items) {
             }
 
         } else { // слово отсутствует в мешке
+            documentTotal++;
 
             if (wordsCount === 1) { // 1 слово
                 // пушим сам item и его norm
@@ -529,6 +548,7 @@ function handleItems(items) {
                 };
                 saveItemSingleNorm(item);
             } else { // несколько слов
+                // documentTotal++;
                 handledItems[id] = {
                     'uses': item[1],
                     'wordsCount': wordsCount,
@@ -537,13 +557,51 @@ function handleItems(items) {
                 };
                 if (custom) {
                     item[3].forEach(function (word) {
-                        saveWord(item, word);
+                        saveWord(item, word, true);
                     });
                 }
             }
         }
     });
 
+    console.log(111, documentTotal, wordDocumentsCount);
+    if (tf_idf) {
+        let max = 0
+        let min = 0;
+        console.log(222, handledItems);
+        for (let id in handledItems) {
+            if (handledItems.hasOwnProperty(id)) {
+                if (wordDocumentsCount.hasOwnProperty(id)) {
+                    let tf = handledItems[id].uses / documentTotal;
+                    let idf = documentTotal / (wordDocumentsCount[id] + 1);
+                    handledItems[id].uses = tf * idf;
+                    console.log(333, '!!!ALERT!!!', id, tf, idf, handledItems[id].uses);
+                } else {
+                    let tf = handledItems[id].uses / documentTotal;
+                    handledItems[id].uses = tf * documentTotal;
+                }
+                // min and max
+                if (handledItems[id].uses > max) {
+                    max = handledItems[id].uses;
+                }
+                if (handledItems[id].uses < min) {
+                    min = handledItems[id].uses;
+                }
+                //
+            }
+        }
+        console.log(444, min, max);
+        // нормализация
+        for (let id in handledItems) {
+            if (handledItems.hasOwnProperty(id)) {
+                handledItems[id].uses = (handledItems[id].uses - min) / (max - min);
+                handledItems[id].uses *= 3;
+            }
+        }
+        //
+    }
+
+    console.log(555, handledItems);
     return handledItems;
 }
 
@@ -629,6 +687,7 @@ function makeData(items) {
 
     if (
         removeWeak
+        // && Object.keys(handledItems).length > 30
         && Object.keys(handledItems).length > 60
     ) {
         for (let id in handledItems) {

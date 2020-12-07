@@ -38,7 +38,7 @@ host = os.getenv('HOST')
 # f = open('/usr/src/app/src/log.txt', 'w')
 # f.write('\n')
 # f.close()
-#
+
 # term_extractor = TermExtractor()
 # test_text = """Турагенты не владеют средствами обслуживания и выступают посредниками между предприятием туристского обслуживания и покупателем туристской путевки, продвигая и реализуя туристский продукт.
 # С законодательством, закрепляющим деятельность туристских агентств и туроператоров в Российской Федерации, можно ознакомиться на сайте федерального агентства по туризму.
@@ -48,19 +48,20 @@ host = os.getenv('HOST')
 # definition_list: List[List] = list()
 # for term in term_extractor.__call__(
 #         test_text,
-#         nested=True
+#         nested=True,
 #         # nested=False
+#         # strings=True,
 # ):
-#     # print(term.count)
-#     words: List[List] = list()
-#     for word in term.words:
-#         words.append([
-#             word.parsed.word,
-#             str(word.parsed.tag),
-#             word.parsed.normal_form,
-#             word.parsed.score,
-#             repr(word.parsed.methods_stack),
-#         ])
+    # print(term.count)
+    # words: List[List] = list()
+    # for word in term.words:
+        # words.append([
+        #     word.parsed.word,
+        #     str(word.parsed.tag),
+        #     word.parsed.normal_form,
+        #     word.parsed.score,
+        #     repr(word.parsed.methods_stack),
+        # ])
 #
 #     definition_list.append([
 #         term.normalized,
@@ -69,7 +70,8 @@ host = os.getenv('HOST')
 #         json.dumps(words),
 #     ])
 #     f = open('/usr/src/app/src/log.txt', 'a')
-#     f.write(term.normalized + ' ' + str(term.count) + ' ' + repr(term.words[0].parsed) + ' ' + str(term.word_count) + '\n')
+#     # f.write(term.normalized + ' ' + str(term.count) + ' ' + repr(term.words[0].parsed) + ' ' + str(term.word_count) + '\n')
+#     f.write(repr(term.normalized))
 #     f.close()
 #
 # print(definition_list)
