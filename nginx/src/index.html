@@ -16,6 +16,143 @@
     <script src="./script.js"></script>
 </head>
 <body>
+<div class="form-wrapper">
+    <form id="bananaForm">
+        <input type="hidden" name="link" value="test">
+        <div class="form-input">
+            <div class="form-input__title">Связать по параметру:</div>
+            <div class="form-input__radio">
+                <label>
+                    <input type="radio" name="links-mode" value="sp" onchange="document.getElementById('bananaForm').submit();">
+                    <span> Часть речи</span>
+                </label>
+            </div>
+            <div class="form-input__radio">
+                <label>
+                    <input type="radio" name="links-mode" value="case" onchange="document.getElementById('bananaForm').submit();">
+                    <span> Падеж</span>
+                </label>
+            </div>
+            <div class="form-input__radio">
+                <label>
+                    <input type="radio" name="links-mode" value="ct" onchange="document.getElementById('bananaForm').submit();">
+                    <span> Число</span>
+                </label>
+            </div>
+            <div class="form-input__radio">
+                <label>
+                    <input type="radio" name="links-mode" value="gender" onchange="document.getElementById('bananaForm').submit();">
+                    <span> Род</span>
+                </label>
+            </div>
+            <div class="form-input__radio">
+                <label>
+                    <input type="radio" name="links-mode" value="ls" onchange="document.getElementById('bananaForm').submit();">
+                    <span> Одушевленность</span>
+                </label>
+            </div>
+            <div class="form-input__radio">
+                <label>
+                    <input type="radio" name="links-mode" value="wc" onchange="document.getElementById('bananaForm').submit();">
+                    <span> Количество слов</span>
+                </label>
+            </div>
+            <div class="form-input__radio">
+                <label>
+                    <input type="radio" name="links-mode" value="weight" onchange="document.getElementById('bananaForm').submit();">
+                    <span> Важность (вес)</span>
+                </label>
+            </div>
+        </div>
+        <div class="form-input">
+            <div class="form-input__title">Окрашивать по параметру:</div>
+            <div class="form-input__radio">
+                <label>
+                    <input type="radio" name="color-mode" value="ls" onchange="document.getElementById('bananaForm').submit();">
+                    <span> Одушевленность</span>
+                </label>
+            </div>
+            <div class="form-input__radio">
+                <label>
+                    <input type="radio" name="color-mode" value="ct" onchange="document.getElementById('bananaForm').submit();">
+                    <span> Число</span>
+                </label>
+            </div>
+            <div class="form-input__radio">
+                <label>
+                    <input type="radio" name="color-mode" value="gender" onchange="document.getElementById('bananaForm').submit();">
+                    <span> Род</span>
+                </label>
+            </div>
+            <div class="form-input__radio">
+                <label>
+                    <input type="radio" name="color-mode" value="wc" onchange="document.getElementById('bananaForm').submit();">
+                    <span> Количество слов</span>
+                </label>
+            </div>
+        </div>
+        <div class="form-input">
+            <div class="form-input__title">Доп. обработка:</div>
+            <div class="form-input__radio">
+                <label>
+                    <input type="radio" name="custom" value="true" onchange="document.getElementById('bananaForm').submit();">
+                    <span> Включено</span>
+                </label>
+            </div>
+            <div class="form-input__radio">
+                <label>
+                    <input type="radio" name="custom" value="false" onchange="document.getElementById('bananaForm').submit();">
+                    <span> Отключено</span>
+                </label>
+            </div>
+        </div>
+        <div class="form-input">
+            <div class="form-input__title">TF-IDF:</div>
+            <div class="form-input__radio">
+                <label>
+                    <input type="radio" name="tf-idf" value="true" onchange="document.getElementById('bananaForm').submit();">
+                    <span> Включено</span>
+                </label>
+            </div>
+            <div class="form-input__radio">
+                <label>
+                    <input type="radio" name="tf-idf" value="false" onchange="document.getElementById('bananaForm').submit();">
+                    <span> Отключено</span>
+                </label>
+            </div>
+        </div>
+        <div class="form-input">
+            <div class="form-input__title">Разделять фразы:</div>
+            <div class="form-input__radio">
+                <label>
+                    <input type="radio" name="divide" value="true" onchange="document.getElementById('bananaForm').submit();">
+                    <span> Включено</span>
+                </label>
+            </div>
+            <div class="form-input__radio">
+                <label>
+                    <input type="radio" name="divide" value="false" onchange="document.getElementById('bananaForm').submit();">
+                    <span> Отключено</span>
+                </label>
+            </div>
+        </div>
+        <div class="form-input">
+            <div class="form-input__title">Single Norm:</div>
+            <div class="form-input__radio">
+                <label>
+                    <input type="radio" name="single-norm" value="true" onchange="document.getElementById('bananaForm').submit();">
+                    <span> Включено</span>
+                </label>
+            </div>
+            <div class="form-input__radio">
+                <label>
+                    <input type="radio" name="single-norm" value="false" onchange="document.getElementById('bananaForm').submit();">
+                    <span> Отключено</span>
+                </label>
+            </div>
+        </div>
+    </form>
+</div>
 <div class="network" id="network"></div>
 </body>
 </html>

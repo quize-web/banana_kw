@@ -1,3 +1,28 @@
 body {
+    /*min-height: 1000px;*/
+    /*min-width: 1000px;*/
     margin: 0;
+}
+
+.form-wrapper {
+    position: absolute;
+    padding: 2px 4px;
+    background: rgba(0, 0, 0, 0.01);
+    border-radius: 10px;
+}
+
+.form-wrapper form {
+    /*display: flex;*/
+}
+
+.form-input:not(:last-of-type) {
+    margin-bottom: 10px;
+}
+
+.form-wrapper label {
+    cursor: pointer;
+}
+
+.form-input__title {
+    font-weight: bold;
 }

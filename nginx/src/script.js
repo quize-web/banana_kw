@@ -4,6 +4,39 @@
 // console.log('speechPart:', speechPart);
 // console.log('wordCase:', wordCase);
 
+let link = getQueryParam('link') || null;
+
+let colorMode = getQueryParam('color-mode') || 'gender';
+// let colorMode = 'ls'; // life status (одушевленность)
+// let colorMode = 'ct'; // count type (число)
+// let colorMode = 'gender'; // цвет по роду
+// let colorMode = 'wc'; // words count (количество слов)
+
+let linksMode = getQueryParam('links-mode') || 'case';
+// let linksMode = 'sp'; // speech part (часть речи)
+// let linksMode = 'case'; // по падежу
+// let linksMode = 'ct'; // count type (число)
+// let linksMode = 'gender'; // по роду
+// let linksMode = 'ls'; // life status (одушевленность)
+// let linksMode = 'wc'; // words count (количество слов)
+// let linksMode = 'weight'; // важность (вес)
+// let linksMode = 'ewe'; // каждый с каждым
+// let linksMode = 'kinship'; // родитель-потомок
+
+let sizeMode = 'default'; // важность слов и количество слов
+
+let customParam = getQueryParam('custom') || 'true';
+custom = (customParam === 'true');
+
+let tfidfParam = getQueryParam('tf-idf') || 'true';
+tf_idf = (tfidfParam === 'true');
+
+let divideParam = getQueryParam('divide') || 'true';
+divide = (divideParam === 'true');
+
+let singleNormParam = getQueryParam('single-norm') || 'false';
+singleNorm = (singleNormParam === 'true');
+
 // TODO: ...???
 function findGrammeme(slugs, grammemes) {
     let result = null;
@@ -400,57 +433,106 @@ function getItemFontSize(item) {
 }
 
 // TODO: ...???
-function getWordColorGroup(word) {
+function getWordColorGroup(word, count) {
     let colorGroup = 'null';
     switch (colorMode) {
-        case 'gender':
-            let gender = getGender(word[1]);
-            if (gender) {
-                colorGroup = gender;
+        case 'ls': // life status (одушевленность)
+            if (word) {
+                let ls = getLifeStatus(word[1]);
+                if (ls) {
+                    colorGroup = ls;
+                }
             }
+            break;
+        case 'ct': // count type (число)
+            if (word) {
+                let countType = getCountType(word[1]);
+                if (countType) {
+                    colorGroup = countType;
+                }
+            }
+            break;
+        case 'gender': // род
+            if (word) {
+                let gender = getGender(word[1]);
+                if (gender) {
+                    colorGroup = gender;
+                }
+            }
+            break;
+        case 'wc': // words count (количество слов)
+            colorGroup = count;
             break;
     }
     return colorGroup;
 }
 
 // TODO: ...???
-function getItemColorGroup(item) {
+function getItemColorGroup(item, count) {
     let colorGroup = 'null';
     if (item[2] === 1) { // кол-во слов
-        colorGroup = getWordColorGroup(item[3][0]);
+        colorGroup = getWordColorGroup(item[3][0], count);
     }
     return colorGroup;
 }
 
 // TODO: ...???
-function getWordLinkGroup(word) {
+function getWordLinkGroup(word, count) {
     let linkGroup = 'null';
     switch (linksMode) {
         // case 'ewe': // каждый с каждым
         //     //
         //     break;
+        case 'sp': // speech part (часть речи)
+            if (word) {
+                linkGroup = getSpeechParts(word[1]);
+            }
+            break;
         case 'case': // падеж
-            linkGroup = getCase(word[1]);
+            if (word) {
+                linkGroup = getCase(word[1]);
+            }
+            break;
+        case 'ct': // count type (число)
+            if (word) {
+                linkGroup = getCountType(word[1]);
+            }
             break;
         case 'gender': // род
-
-            //
-
+            if (word) {
+                linkGroup = getGender(word[1]);
+            }
+            break;
+        case 'ls': // life status (одушевленность)
+            if (word) {
+                linkGroup = getLifeStatus(word[1]);
+            }
+            break;
+        case 'wc': // words count (количество слов)
+            linkGroup = count;
+            break;
+        case 'weight': // важность (вес)
+            if (word) {
+                if (word.hasOwnProperty('uses')) {
+                    linkGroup = word.uses;
+                    // linkGroup = Math.round(word.uses);
+                } else {
+                    linkGroup = 0;
+                }
+            }
             break;
         case 'kinship': // родитель-потомок
-
             //
-
             break;
     }
     return linkGroup;
 }
 
 // TODO: ...???
-function getItemLinkGroup(item) {
+function getItemLinkGroup(item, count) {
     let colorGroup = 'null';
     if (item[2] === 1) { // кол-во слов
-        colorGroup = getWordLinkGroup(item[3][0]);
+        colorGroup = getWordLinkGroup(item[3][0], count);
     }
     return colorGroup;
 }
@@ -474,17 +556,17 @@ function getId(item) {
 function handleItems(items) {
     let handledItems = [];
 
-    const tf_idf = true;
+    // const tf_idf = true;
     // const tf_idf = false;
 
-    const custom = true;
+    // const custom = true;
     // const custom = false;
 
-    const divide = true;
+    // const divide = true;
     // const divide = false;
 
     // const singleNorm = true;
-    const singleNorm = false;
+    // const singleNorm = false;
 
     let documentTotal = 0;
     let wordDocumentsCount = {};
@@ -499,8 +581,10 @@ function handleItems(items) {
                 handledItems[word[2]] = {
                     'uses': item[1],
                     'wordsCount': 1,
-                    'colorGroup': getWordColorGroup(word),
-                    'linkGroup': getWordLinkGroup(word),
+                    // 'colorGroup': getWordColorGroup(word, item[2]),
+                    'colorGroup': getWordColorGroup(word, 1),
+                    // 'linkGroup': getWordLinkGroup(word, item[2]),
+                    'linkGroup': getWordLinkGroup(word, 1),
                 };
             }
         }
@@ -513,6 +597,8 @@ function handleItems(items) {
 
     const saveItemSingleNorm = function (item) {
         if (custom && singleNorm) {
+            // следует ли, если в ключевом слове 1 слово, нормализовывать
+            // это слово и прибавлять кол-во использований этому нормализованному слову
             let firstWord = getFirstWord(item);
             saveWord(item, firstWord);
         }
@@ -540,11 +626,12 @@ function handleItems(items) {
 
             if (wordsCount === 1) { // 1 слово
                 // пушим сам item и его norm
+                // console.log(999, item);
                 handledItems[id] = {
                     'uses': item[1],
                     'wordsCount': wordsCount, // 1
-                    'colorGroup': getItemColorGroup(item), // можем получить цвет
-                    'linkGroup': getItemLinkGroup(item), // можем получить цвет
+                    'colorGroup': getItemColorGroup(item, wordsCount), // можем получить цвет
+                    'linkGroup': getItemLinkGroup(item, wordsCount), // можем получить связь
                 };
                 saveItemSingleNorm(item);
             } else { // несколько слов
@@ -552,8 +639,10 @@ function handleItems(items) {
                 handledItems[id] = {
                     'uses': item[1],
                     'wordsCount': wordsCount,
-                    'colorGroup': 'null', // НЕ можем получить цвет (несколько слов)
-                    'linkGroup': 'null', // НЕ можем получить связь (несколько слов)
+                    // 'colorGroup': 'null', // НЕ можем получить цвет (несколько слов)
+                    'colorGroup': getWordColorGroup(null, wordsCount),
+                    // 'linkGroup': 'null', // НЕ можем получить связь (несколько слов)
+                    'linkGroup': getWordLinkGroup(null, wordsCount),
                 };
                 if (custom) {
                     item[3].forEach(function (word) {
@@ -564,18 +653,18 @@ function handleItems(items) {
         }
     });
 
-    console.log(111, documentTotal, wordDocumentsCount);
+    // console.log(111, documentTotal, wordDocumentsCount);
     if (tf_idf) {
         let max = 0
         let min = 0;
-        console.log(222, handledItems);
+        // console.log(222, handledItems);
         for (let id in handledItems) {
             if (handledItems.hasOwnProperty(id)) {
                 if (wordDocumentsCount.hasOwnProperty(id)) {
                     let tf = handledItems[id].uses / documentTotal;
                     let idf = documentTotal / (wordDocumentsCount[id] + 1);
                     handledItems[id].uses = tf * idf;
-                    console.log(333, '!!!ALERT!!!', id, tf, idf, handledItems[id].uses);
+                    // console.log(333, '!!!ALERT!!!', id, tf, idf, handledItems[id].uses);
                 } else {
                     let tf = handledItems[id].uses / documentTotal;
                     handledItems[id].uses = tf * documentTotal;
@@ -590,7 +679,7 @@ function handleItems(items) {
                 //
             }
         }
-        console.log(444, min, max);
+        // console.log(444, min, max);
         // нормализация
         for (let id in handledItems) {
             if (handledItems.hasOwnProperty(id)) {
@@ -601,7 +690,15 @@ function handleItems(items) {
         //
     }
 
-    console.log(555, handledItems);
+    if (linksMode === 'weight') {
+        for (let id in handledItems) {
+            if (handledItems.hasOwnProperty(id)) {
+                handledItems[id]['linkGroup'] = getWordLinkGroup(handledItems[id]);
+            }
+        }
+    }
+
+    // console.log(555, handledItems);
     return handledItems;
 }
 
@@ -636,7 +733,19 @@ function makeLinks(handledItems) {
             }
 
             break;
+        case 'sp': // speech part (часть речи)
+        // no break
         case 'case': // падеж
+        // no break
+        case 'ct': // count type (число)
+        // no break
+        case 'gender': // род
+        // no break
+        case 'ls': // life status (одушевленность)
+        // no break
+        case 'wc': // words count (количество слов)
+        // no break
+        case 'weight': // важность (вес)
 
             for (let parentId in handledItems) {
                 if (handledItems.hasOwnProperty(parentId)) {
@@ -658,17 +767,9 @@ function makeLinks(handledItems) {
                     }
                 }
             }
-
-            break;
-        case 'gender': // род
-
-            //
-
             break;
         case 'kinship': // родитель-потомок
-
             //
-
             break;
     }
     return [links, groups];
@@ -775,49 +876,67 @@ function getQueryParam(item) {
     return value ? value[1] : null;
 }
 
+// --- События
+
+//
+
 // ---
 
-let sizeMode = 'default'; // важность слов и количество слов
+document.addEventListener('DOMContentLoaded', function () {
 
-let colorMode = 'gender'; // цвет по роду
+    // console.log('link:', link);
+    if (link) {
+        let linkInput = document.getElementsByName('link')[0];
+        linkInput.value = link;
 
-// let linksMode = 'ewe'; // каждый с каждым
-let linksMode = 'case'; // по падежу
-// let linksMode = 'gender'; // по роду
-// let linksMode = 'kinship'; // родитель-потомок
+        let colorModeRadio = document.querySelector(`[name="color-mode"][value="${colorMode}"]`);
+        colorModeRadio.checked = true;
 
-let link = getQueryParam('link') || null;
-// console.log('link:', link);
-if (link) {
-    axios.get('/api/container', {
-        params: {
-            where: `{"link":"${link}"}`
-        }
-    })
-        .then(function (resp) {
-            // console.log(resp);
-            if (resp) {
+        let linksModeRadio = document.querySelector(`[name="links-mode"][value="${linksMode}"]`);
+        linksModeRadio.checked = true;
 
-                let itemsJSON = resp['data']['_items'][0]['data'];
-                // console.log(itemsJSON);
+        let customRadio = document.querySelector(`[name="custom"][value="${customParam}"]`);
+        customRadio.checked = true;
 
-                let items = JSON.parse(itemsJSON);
-                // console.log(items);
+        let tfidfRadio = document.querySelector(`[name="tf-idf"][value="${tfidfParam}"]`);
+        tfidfRadio.checked = true;
 
-                items.forEach(function (item) {
-                    if (typeof item[3] === 'string') {
-                        item[3] = JSON.parse(item[3]);
-                    }
-                    // console.log(item);
-                });
+        let divideRadio = document.querySelector(`[name="divide"][value="${divideParam}"]`);
+        divideRadio.checked = true;
 
-                draw(makeData(items));
+        let singleNormRadio = document.querySelector(`[name="single-norm"][value="${singleNormParam}"]`);
+        singleNormRadio.checked = true;
+
+        axios.get('/api/container', {
+            params: {
+                where: `{"link":"${link}"}`
             }
         })
-        .catch(function (err) {
-            console.log(err);
-        })
-        .then(function () {
-            //
-        });
-}
+            .then(function (resp) {
+                // console.log(resp);
+                if (resp) {
+
+                    let itemsJSON = resp['data']['_items'][0]['data'];
+                    // console.log(itemsJSON);
+
+                    let items = JSON.parse(itemsJSON);
+                    // console.log(items);
+
+                    items.forEach(function (item) {
+                        if (typeof item[3] === 'string') {
+                            item[3] = JSON.parse(item[3]);
+                        }
+                        // console.log(item);
+                    });
+
+                    draw(makeData(items));
+                }
+            })
+            .catch(function (err) {
+                console.log(err);
+            })
+            .then(function () {
+                //
+            });
+    }
+});
