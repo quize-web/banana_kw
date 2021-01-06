@@ -1,4 +1,5 @@
-version: "3.8"
+#version: "3.8"
+version: "3.3"
 services:
 
   # MONGO
@@ -72,6 +73,7 @@ services:
     volumes:
       - ./nginx/templates:/etc/nginx/templates
       - ./nginx/src:/data/www/banana-kw.local
+      - ./nginx/src:/data/www/gedeon.host
       - ./nginx/logs:/etc/nginx/logs
     ports:
       - "80:80"

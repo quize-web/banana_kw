@@ -1,0 +1,44 @@
+server {
+    listen 80;
+    server_name gedeon.host;
+    root /data/www/gedeon.host;
+
+    access_log /etc/nginx/logs/gedeon.host.access.log;
+    error_log /etc/nginx/logs/gedeon.host.error.log notice;
+
+    # запрещаем работать со скрытыми файлами и папками
+    location ~ /\. {
+        deny all;
+        access_log off;
+        log_not_found off;
+    }
+    location ~* .*/\..* {
+        return 403;
+    }
+
+    # всю статику, которая реально существует,
+    # отдаем пользователю напрямую без прокси
+    location ~ \.(jpe?g|png|svg|ico)$ {
+        try_files $uri =404;
+        expires 28d;
+    }
+    location ~ \.(html|js|css)$ {
+        try_files $uri =404;
+        expires 1d;
+    }
+
+    location ~ ^\/api(\/.*)$ {
+        resolver 127.0.0.11 ipv6=off;
+
+        proxy_pass http://pythonapi:5000$1$is_args$args;
+
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    }
+
+    # все остальные запросы отдаем в index.html
+    location / {
+        index /index.html;
+    }
+}
